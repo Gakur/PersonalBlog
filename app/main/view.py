@@ -7,8 +7,6 @@ from ..models import User, Blog,Comment
 from flask_login import login_required, current_user
 
 
-
-# Views
 @main.route('/')
 def index():
     '''
@@ -78,13 +76,13 @@ def blogs():
         db.session.commit()
         return redirect(url_for('main.theblog'))
     title = 'My Blog'
-    return render_template('blogs.html', title=title, blog_form=blog_form)
+    return render_template('blog_quotes.html', title=title, blog_form=blog_form)
 
 @main.route('/blog/allblogs', methods=['GET', 'POST'])
 @login_required
 def theblog():
     blogs = Blog.query.all()
-    return render_template('myblogs.html', blogs=blogs)
+    return render_template('blog.html', blogs=blogs)
 
 
 
@@ -104,7 +102,7 @@ def update_blog(id):
     elif request.method == 'GET':
         form.title_blog.data = blog.title_blog
         form.description.data = blog.description
-    return render_template('update_blog.html', form=form)
+    return render_template('new_blogquote.html', form=form)
 
 
 @main.route('/view/<int:id>', methods=['GET', 'POST'])
@@ -116,7 +114,7 @@ def view(id):
     if comment_form.validate_on_submit():
         new_comment = Comment(blog_id=id, comment=comment_form.comment.data, user=current_user)
         new_comment.save_comment()
-    return render_template('view.html', blog=blog, blog_comments=blog_comments, comment_form=comment_form)
+    return render_template('display_blogquotes.html', blog=blog, blog_comments=blog_comments, comment_form=comment_form)
 
 @main.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -141,6 +139,5 @@ def delete_comment(comment_id):
     db.session.commit()
     flash('comment succesfully deleted')
     return redirect (url_for('main.theblog'))
-    # return jsonify("Success"),200
  
    

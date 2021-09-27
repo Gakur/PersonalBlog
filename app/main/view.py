@@ -1,46 +1,146 @@
-from flask import render_template,redirect,url_for,flash,request
-from flask_login import login_user,logout_user,login_required
-from . import auth
-from ..models import User
-from .form import LoginForm, SignUpForm
-from .. import db
-from ..email import mail_message
+from flask import render_template,request,redirect,url_for,abort,jsonify, flash
+from . import main
+from .form import UpdateProfile, QuoteForm, CommentForm
+from .. import db, photos
+from ..request import get_blogQuotes
+from ..models import User, Blog,Comment
+from flask_login import login_required, current_user
 
-@auth.route('/login',methods=['GET','POST'])
-def login():
-    login_form = LoginForm()
-    if login_form.validate_on_submit():
-        user = User.query.filter_by(email = login_form.email.data).first()
-        if user is not None and user.verify_password(login_form.password.data):
-            login_user(user,login_form.remember.data)
-            return redirect(request.args.get('next') or url_for('main.index'))
 
-        flash('Invalid username or Password')
 
-    title = "Best Pitch login"
-    return render_template('auth/login.html',login_form = login_form,title=title)
+# Views
+@main.route('/')
+def index():
+    '''
+    View root page function that returns the index page and its data
+    '''
+    blogQuote = get_blogQuotes()
+    title = 'Home -welcome to My Blogs'
+    
+    return render_template('index.html',title = title, blogQuote=blogQuote)
 
-@auth.route('/signup',methods = ["GET","POST"])
-def register():
-    form = SignUpForm()
+@main.route('/user/<uname>')
+def profile(uname):
+    user = User.query.filter_by(username = uname).first()
+    
+
+    if user is None:
+        abort(404)
+
+    return render_template("profile/profile.html", user = user)
+
+@main.route('/user/<uname>/update',methods = ['GET','POST'])
+@login_required
+def update_profile(uname):
+    user = User.query.filter_by(username = uname).first()
+    if user is None:
+        abort(404)
+
+    form = UpdateProfile()
+
     if form.validate_on_submit():
-        user = User(email = form.email.data, username = form.username.data,firstname= form.firstname.data,lastname= form.lastname.data,password = form.password.data)
+        user.bio = form.bio.data
+
         db.session.add(user)
         db.session.commit()
 
-        mail_message("Welcome to Blog Quote","email/welcome_user",user.email,user=user)
+        return redirect(url_for('.profile',uname=user.username))
 
-        return redirect(url_for('auth.login'))
-    title = "New Account"
-    return render_template('auth/signup.html',signup_form = form, title= title)
+    return render_template('profile/update.html',form = form)
 
 
-@auth.route('/logout')
+
+@main.route('/user/<uname>/update/pic',methods= ['POST'])
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for("main.index"))
+def update_pic(uname):
+    user = User.query.filter_by(username = uname).first()
+    if 'photo' in request.files:
+        filename = photos.save(request.files['photo'])
+        path = f'photos/{filename}'
+        user.profile_pic_path = path
+        db.session.commit()
+    return redirect(url_for('main.profile',uname=uname))
 
 
 
+@main.route('/blog/new', methods=['GET', 'POST'])
+@login_required
+def blogs():
+    """
+    View Blog function that returns the BLog page and data
+    """
+    blog_form = QuoteForm()
+    if blog_form.validate_on_submit():
+        title_blog= blog_form.title_blog.data
+        description = blog_form.description.data
+        new_blog = Blog(title_blog=title_blog, description=description, user=current_user)
+        db.session.add(new_blog)
+        db.session.commit()
+        return redirect(url_for('main.theblog'))
+    title = 'My Blog'
+    return render_template('blogs.html', title=title, blog_form=blog_form)
 
+@main.route('/blog/allblogs', methods=['GET', 'POST'])
+@login_required
+def theblog():
+    blogs = Blog.query.all()
+    return render_template('myblogs.html', blogs=blogs)
+
+
+
+@main.route('/Update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_blog(id):
+    blog = Blog.query.get_or_404(id)
+    if blog.user != current_user:
+        abort(403)
+    form = QuoteForm()
+    if form.validate_on_submit():
+        blog.title_blog = form.title_blog.data
+        blog.description = form.description.data
+        db.session.commit()
+
+        return redirect(url_for('main.theblog'))
+    elif request.method == 'GET':
+        form.title_blog.data = blog.title_blog
+        form.description.data = blog.description
+    return render_template('update_blog.html', form=form)
+
+
+@main.route('/view/<int:id>', methods=['GET', 'POST'])
+@login_required
+def view(id):
+    blog = Blog.query.get_or_404(id)
+    blog_comments = Comment.query.filter_by(blog_id=id).all()
+    comment_form = CommentForm()
+    if comment_form.validate_on_submit():
+        new_comment = Comment(blog_id=id, comment=comment_form.comment.data, user=current_user)
+        new_comment.save_comment()
+    return render_template('view.html', blog=blog, blog_comments=blog_comments, comment_form=comment_form)
+
+@main.route('/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete(id):
+    blog = Blog.query.get_or_404(id)
+    if blog.user != current_user:
+        abort(403)
+    db.session.delete(blog)
+    db.session.commit()
+ 
+    return redirect(url_for('main.theblog'))
+
+
+
+@main.route('/delete_comment/<int:comment_id>', methods=['GET', 'POST'])
+@login_required
+def delete_comment(comment_id):
+    comment =Comment.query.get_or_404(comment_id)
+    if (comment.user.id) != current_user.id:
+        abort(403)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('comment succesfully deleted')
+    return redirect (url_for('main.theblog'))
+    # return jsonify("Success"),200
+ 
+   

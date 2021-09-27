@@ -1,4 +1,4 @@
-#BLOGQUOTE APP
+#BLOGSQUOTE APP
 
 #### Author: 
 * Peter Gakure
@@ -72,7 +72,7 @@ The writer would like to... :
         
 ## Built With
 
-* [Python3.6](https://docs.python.org/3/)
+* [Python3.8](https://docs.python.org/3/)
 * Flask
 * Boostrap
 * HTML

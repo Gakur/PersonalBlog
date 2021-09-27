@@ -4,8 +4,8 @@ class Config:
     '''
     General configuration parent class
     '''
-    SECRET_KEY = 'secret'
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://moringa:access@localhost/blogs'
+    SECRET_KEY = 'secret1'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://pjnr:peter1010@localhost/blogquotes'
     UPLOADED_PHOTOS_DEST = 'app/static/photos'
     SQLALCHEMY_TRACK_MODIFICATIONS =True
     #  email configurations
@@ -30,7 +30,7 @@ class ProdConfig(Config):
 
 
 class DevConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://moringa:access@localhost/blogs'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://pjnr:peter1010@localhost/blogquotes'
 
     DEBUG = True
     

@@ -13,7 +13,7 @@ def index():
     View root page function that returns the index page and its data
     '''
     blogQuote = get_blogQuotes()
-    title = 'Home -welcome to My Blogs'
+    title = 'Welcome to BlogsQuote App....!'
     
     return render_template('index.html',title = title, blogQuote=blogQuote)
 
@@ -65,7 +65,7 @@ def update_pic(uname):
 @login_required
 def blogs():
     """
-    View Blog function that returns the BLog page and data
+    Function that returns the blogqoutes page and its data
     """
     blog_form = QuoteForm()
     if blog_form.validate_on_submit():
@@ -75,7 +75,7 @@ def blogs():
         db.session.add(new_blog)
         db.session.commit()
         return redirect(url_for('main.theblog'))
-    title = 'My Blog'
+    title = 'Blogs available'
     return render_template('blog_quotes.html', title=title, blog_form=blog_form)
 
 @main.route('/blog/allblogs', methods=['GET', 'POST'])

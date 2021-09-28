@@ -3,8 +3,8 @@
 #### Author: 
 * Peter Gakure
 
-
-* Link to live site: [My blogs](https://pepeblogs.herokuapp.com/)
+## Visit Live App
+* Link to live site: [BlogsQuote App](https://blogsquote-wk4.herokuapp.com/)
 
 ## Description
 This is a personal blogging website where you can create and share your opinions and other users can read and comment on them. Additionally it has a feature that displays random quotes to inspire your users.

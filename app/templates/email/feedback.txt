@@ -1,0 +1,4 @@
+Hello {{user.username}}
+Thank you for signing up with BlogsQuote App. 
+Please enjoy the blogs and feel free to post,comment and update your blog.
+We wish you the best experience ever..! Cheers....!
